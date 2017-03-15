@@ -5,15 +5,11 @@ var fs = require('fs');
 var cheerio = require('cheerio');
 
 var client = new elasticsearch.Client({
-  host: 'https://search-cs499a3-lvz7sdf3cago5jedwyakxrpcae.us-west-1.es.amazonaws.com',
+  host: 'https://search-cs499a3-lvz7sdf3cago5jedwyakxrpcae.us-west-1.es.amazonaws.com/',
   log: 'info'
 });
 
-var asin = 'B01G1XH46M';
-var amzn_url = 'http://www.amazon.com/dp/' + asin;
-
 client.ping({
-  // ping usually has a 3000ms timeout
   requestTimeout: 5000
 }, function (error) {
   if (error) {
@@ -23,13 +19,16 @@ client.ping({
   }
 });
 
+var asin = 'B01G1XH46M';
+var amzn_url = 'http://www.amazon.com/dp/' + asin;
+
+
 request(amzn_url, function(error, response, body) {
    fs.writeFile('product.html', body, function(error) {
       console.log('Page saved!');
    });
 });
 
-checkPrice();
 
 function checkPrice() {
    request(amzn_url, function(error, response, body) {
@@ -42,14 +41,18 @@ function checkPrice() {
 		  index: 'Powerbank-price',
 		  type: 'Powerbank',
 		  id: 1,
-		  body: stipped_price
+		  body: stripped_price
 	  }, function (error, response) {
           console.log("put item successfully.")
 	  })
    });
 
-   setTimeout(checkPrice, 60000);   // 60000 ms == 1 min
 }
+
+setInterval(function() {
+  checkPrice();
+}, 6000000);
+
 var app = express()
 
 app.listen(3000, function () {
